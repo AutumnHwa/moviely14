@@ -26,10 +26,12 @@ const MvBanner = ({ title, poster, flatrate, movieId, userId }) => {
     setRating(newRating);
 
     const ratingData = {
-      user_id: userId, // 사용자 ID를 props로 받음
-      movie_id: movieId, // 영화 ID
+      user_id: userId,
+      movie_id: movieId,
       rating: parseFloat(newRating)
     };
+
+    console.log('Sending rating data:', ratingData);
 
     try {
       const response = await fetch('https://moviely.duckdns.org/ratings', {
@@ -40,7 +42,9 @@ const MvBanner = ({ title, poster, flatrate, movieId, userId }) => {
         body: JSON.stringify(ratingData),
       });
 
-      const responseData = await response.text(); 
+      console.log('Response status:', response.status);
+      const responseData = await response.text();
+      console.log('Raw response data:', responseData);
 
       try {
         const jsonResponse = JSON.parse(responseData);
@@ -56,7 +60,7 @@ const MvBanner = ({ title, poster, flatrate, movieId, userId }) => {
       }
 
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Fetch error:', error);
       setMessage('Failed to submit rating.');
     }
 
