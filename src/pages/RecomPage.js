@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Papa from 'papaparse';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -9,7 +8,6 @@ import { Navigation, Pagination } from 'swiper/modules';
 import MvBanner from './MvBanner';
 import '../css/RecomPage.css';
 import logoImage from '../logo.png';
-import moviesCSV from '../movie.csv';
 
 const genreMapping = {
   '28': '액션',
@@ -41,8 +39,7 @@ function RecomPage() {
   const [topMovie, setTopMovie] = useState(null);
   const [movieItems, setMovieItems] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const userId = 1; // 하드코딩된 사용자 ID
+  const userId = localStorage.getItem('userId'); // 사용자 ID를 localStorage에서 가져옴
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -77,21 +74,23 @@ function RecomPage() {
       }
     };
 
-    fetchRecommendations();
+    const fetchRandomMovies = async () => {
+      try {
+        const response = await fetch('https://moviely.duckdns.org/api/movies');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Fetched random movies:', data);
+          setRandomMovies(shuffleArray(data).slice(0, 10));
+        } else {
+          console.error('Failed to fetch random movies:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching random movies:', error);
+      }
+    };
 
-    Papa.parse(moviesCSV, {
-      download: true,
-      header: true,
-      complete: (result) => {
-        console.log('Parsed CSV data:', result.data);
-        const processedData = result.data.map(movie => ({
-          ...movie,
-          flatrate: movie.flatrate ? movie.flatrate.split(', ') : [],
-          genre: movie.genre ? movie.genre.split(', ').map(g => genreMapping[g.trim()]).filter(Boolean) : [], // genre 필드 처리 및 매핑
-        }));
-        setRandomMovies(shuffleArray(processedData).slice(0, 10));
-      },
-    });
+    fetchRecommendations();
+    fetchRandomMovies();
   }, [userId]);
 
   const shuffleArray = (array) => {
@@ -166,7 +165,7 @@ function RecomPage() {
                 ) : (
                   movieItems.map((movie, index) => {
                     const genreList = movie.genre ? movie.genre.split(',').map(g => genreMapping[g.trim()]).filter(Boolean) : [];
-                    const posterUrl = movie.poster_path ? `http://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/70x105?text=No+Image';
+                    const posterUrl = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/70x105?text=No+Image';
                     console.log('Movie Data:', movie); // Movie 데이터 로그 출력
                     return (
                       <div key={index} className="movieItem">
@@ -196,7 +195,7 @@ function RecomPage() {
                 modules={[Navigation, Pagination]}
               >
                 {randomMovies.map((movie, index) => {
-                  const posterUrl = movie.poster_path ? `http://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/70x105?text=No+Image';
+                  const posterUrl = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/70x105?text=No+Image';
                   return (
                     <SwiperSlide key={index}>
                       <div style={{ transform: 'scale(0.8)' }}>
