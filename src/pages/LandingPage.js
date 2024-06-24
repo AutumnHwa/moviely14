@@ -9,10 +9,22 @@ function LandingPage() {
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await fetch('https://moviely.duckdns.org/api/movies?size=1000', { mode: 'cors' }); // HTTPS로 변경
-        const data = await response.json();
-        if (data && data.content) {
-          setMovies(data.content);
+        const response = await fetch('https://moviely.duckdns.org/api/movies?size=1000', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          mode: 'cors',
+          redirect: 'follow'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.content) {
+            setMovies(data.content);
+          }
+        } else {
+          console.error('HTTP error:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Failed to fetch movies:', error);
